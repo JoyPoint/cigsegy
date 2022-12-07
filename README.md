@@ -54,7 +54,11 @@ cmake .. -DCMAKE_INSTALL_PREFIX=your-install-dir \
   -Dfmt_ROOT=/xxx/cigsegy/thridPart/fmt/build/fmt/
 
 # selecting other python version, add -DPYTHON_EXECUTABL
-cmake .. -DCMAKE_INSTALL_PREFIX=your-install-dir -DPYTHON_EXECUTABL=/xxx/bin/python
+cmake .. -DCMAKE_INSTALL_PREFIX=your-install-dir -DPYTHON_EXECUTABL=/xxx/bin/python -DPYTHON_LIBRARIES=/xxx/lib/
+
+# install python package `cigsegy` locally
+cd you-install-path/python
+pip install .
 ```
 
 ### tools
