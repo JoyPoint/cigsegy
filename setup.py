@@ -59,13 +59,12 @@ setup(
     author='roger',
     url='https://github.com/JintaoLee-Roger/cigsegy',
     license='MIT',
-    install_requires=['numpy'],
+    # install_requires=['numpy'],
     python_requires=">=3.6",
     ext_modules=get_extensions(),
     cmdclass={"build_ext": build_ext},
     packages=['cigsegy'],
     package_dir={'cigsegy': 'python'},
-    data_files=[('cigsegy', ['LICENSE', 'Attribuions.md'])],
     include_package_data=True,
     exclude_package_data={'cigsegy': ['*.cpp', '*.txt']}
 )
