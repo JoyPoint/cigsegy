@@ -9,7 +9,7 @@ from setuptools import setup
 cwd = Path(__file__).resolve().parent
 
 package_name = "cigsegy"
-version = "0.1"
+version = "0.1.2"
 git_hash = "unknown"
 
 try:
@@ -66,5 +66,5 @@ setup(
     packages=['cigsegy'],
     package_dir={'cigsegy': 'python'},
     include_package_data=True,
-    exclude_package_data={'cigsegy': ['*.cpp', '*.txt']}
+    exclude_package_data={'cigsegy': ['*.cpp', '*.txt', 'setup.py']}
 )

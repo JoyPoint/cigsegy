@@ -13,7 +13,7 @@ set(COPYRIGHT
   ${CMAKE_SOURCE_DIR}/LICENSE
   ${CMAKE_SOURCE_DIR}/Attributions.md
   ${CMAKE_SOURCE_DIR}/README.md
-  ${CMAKE_SOURCE_DIR}/setup.py)
+  ${CMAKE_SOURCE_DIR}/python/setup.py)
 set(PYFILE
   ${CMAKE_SOURCE_DIR}/python/cigsegy.pyi
   ${CMAKE_SOURCE_DIR}/python/__init__.py)
