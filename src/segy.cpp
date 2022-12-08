@@ -246,7 +246,7 @@ void SegyIO::scan() {
   // fill m_lineInfo
   int jump = m_metaInfo.trace_count / m_metaInfo.sizeZ;
   m_metaInfo.sizeY = jump;
-  uint64_t itrace = 0;
+  int64_t itrace = 0;
   get_TraceInfo(start, trace2);
   for (int i = 0; i < m_metaInfo.sizeZ - 1; i++) {
     m_lineInfo[i].trace_start = itrace;
@@ -457,7 +457,7 @@ void SegyIO::tofile(const std::string &binary_out_name) {
   uint64_t need_size = static_cast<uint64_t>(m_metaInfo.sizeX) *
                        m_metaInfo.sizeY * m_metaInfo.sizeZ * sizeof(float);
   int fd = open(binary_out_name.c_str(), O_RDWR | O_CREAT | O_TRUNC, 00644);
-  for (int i = 0; i < need_size / kMaxLSeekSize + 1; i++) {
+  for (int i = 0; i < int(need_size / kMaxLSeekSize) + 1; i++) {
     uint64_t move_point = need_size > kMaxLSeekSize ? kMaxLSeekSize : need_size;
     if (lseek(fd, move_point - 1, SEEK_END) < 0) {
       throw std::runtime_error("create file failed");
@@ -475,7 +475,6 @@ void SegyIO::tofile(const std::string &binary_out_name) {
   if (error) {
     throw std::runtime_error("mmap fail when write data");
   }
-  uint64_t size = rw_mmap.size();
   close(fd);
   // or need split into serveral chunks?
   read(reinterpret_cast<float *>(rw_mmap.data()));
@@ -557,7 +556,7 @@ void SegyIO::create(const std::string &segy_out_name, const float *src) {
           (m_metaInfo.sizeX * sizeof(float) + kTraceHeaderSize);
   int fd = open(segy_out_name.c_str(), O_RDWR | O_CREAT | O_TRUNC, 00644);
   // lseek(int, long, ), check whether need size > max number of long
-  for (int i = 0; i < need_size / kMaxLSeekSize + 1; i++) {
+  for (int i = 0; i < int(need_size / kMaxLSeekSize) + 1; i++) {
     uint64_t move_point = need_size > kMaxLSeekSize ? kMaxLSeekSize : need_size;
     if (lseek(fd, move_point - 1, SEEK_END) < 0) {
       throw std::runtime_error("create file failed");

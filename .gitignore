@@ -12,6 +12,9 @@
 *.o
 .DS_Store
 
+*.egg-info
+version.py
+
 test.cpp
 thridpart/
 .cache

@@ -1,24 +1,71 @@
-from setuptools import setup, find_packages
+import os
+import subprocess
+
+from pathlib import Path
+
+from pybind11.setup_helpers import Pybind11Extension, build_ext
+from setuptools import setup
+
+cwd = Path(__file__).resolve().parent
+
+package_name = "cigsegy"
+version = "0.1"
+git_hash = "unknown"
 
 try:
-    from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+    git_hash = (subprocess.check_output(["git", "rev-parse", "HEAD"],
+                                        cwd=cwd).decode().strip())
+except (FileNotFoundError, subprocess.CalledProcessError):
+    pass
 
-    class bdist_wheel(_bdist_wheel):
 
-        def finalize_options(self):
-            _bdist_wheel.finalize_options(self)
-            self.root_is_pure = False
-except ImportError:
-    bdist_wheel = None
+def write_version_file():
+    path = 'python/version.py'
+    with open(path, "w") as f:
+        f.write(f'__version__ = "{version}"\n')
+        f.write(f'git_version = "{git_hash}"\n')
+
+
+write_version_file()
+
+
+def get_extensions():
+    # add segy
+    ext_modules = []
+    sources = ['src/segy.cpp', 'python/PySegy.cpp']
+    include_dirs = ['src/include']
+    extra_compile_args = ["-std=c++11", "-Wall"]
+    extra_link_args = ['-lfmt']
+    if os.getenv("DEBUG_BUILD", None):
+        extra_compile_args += ["-O0", "-g", "-UNDEBUG"]
+    else:
+        extra_compile_args += ["-O3"]
+
+    ext_modules.append(
+        Pybind11Extension(name=f'{package_name}/{package_name}',
+                          sources=[str(s) for s in sources],
+                          include_dirs=include_dirs,
+                          extra_compile_args=extra_compile_args,
+                          extra_link_args=extra_link_args))
+
+    return ext_modules
+
 
 setup(
-    name='cigsegy',
-    version='0.1',
+    name=package_name,
+    version=version,
     description=
     'A tool for segy-format file reading and segy-format creating from binary file',
     author='roger',
     url='https://github.com/JintaoLee-Roger/cigsegy',
     license='MIT',
-    cmdclass={'bdist_wheel': bdist_wheel},
-    packages=find_packages(),
-    package_data={'': ['*.so']})
+    install_requires=['numpy'],
+    python_requires=">=3.6",
+    ext_modules=get_extensions(),
+    cmdclass={"build_ext": build_ext},
+    packages=['cigsegy'],
+    package_dir={'cigsegy': 'python'},
+    data_files=[('cigsegy', ['LICENSE', 'Attribuions.md'])],
+    include_package_data=True,
+    exclude_package_data={'cigsegy': ['*.cpp', '*.txt']}
+)
