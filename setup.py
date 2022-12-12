@@ -10,7 +10,8 @@ fmt_root = ''
 for v in sys.argv:
     if v.startswith('--fmt_root='):
         sys.argv.remove(v)
-        fmt_root = v.removeprefix('--fmt_root=')
+        # fmt_root = v.removeprefix('--fmt_root=')
+        fmt_root = v[11:]
         break
 
 cwd = Path(__file__).resolve().parent
@@ -46,10 +47,7 @@ def get_extensions():
     extra_compile_args = ["-std=c++11", "-Wall"]
     extra_link_args = []
     # extra_link_args = ['-lfmt']
-    if os.getenv("DEBUG_BUILD", None):
-        extra_compile_args += ["-O0", "-g", "-UNDEBUG"]
-    else:
-        extra_compile_args += ["-O3"]
+    extra_compile_args += ["-O3"]
 
     ext_modules.append(
         Pybind11Extension(name=f'{package_name}/{package_name}',

@@ -18,7 +18,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 project(segy VERSION 0.1.0)
 
-if (NOT ${CMAKE_INSTALL_PREFIX})
+if (NOT CMAKE_INSTALL_PREFIX)
+  message("default path")
   set(CMAKE_INSTALL_PREFIX ${segy_SOURCE_DIR}/Dist)
 endif()
 message("Install Prefix: " ${CMAKE_INSTALL_PREFIX})

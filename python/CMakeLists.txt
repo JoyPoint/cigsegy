@@ -9,6 +9,9 @@ install(TARGETS cigsegy
   LIBRARY DESTINATION python/cigsegy
 )
 
+FILE(GLOB pyfiles ${CMAKE_SOURCE_DIR}/python/*.py)
+message(${pyfiles})
+
 set(COPYRIGHT 
   ${CMAKE_SOURCE_DIR}/LICENSE
   ${CMAKE_SOURCE_DIR}/Attributions.md
@@ -16,7 +19,6 @@ set(COPYRIGHT
   ${CMAKE_SOURCE_DIR}/python/setup.py)
 set(PYFILE
   ${CMAKE_SOURCE_DIR}/python/cigsegy.pyi
-  ${CMAKE_SOURCE_DIR}/python/__init__.py
-  ${CMAKE_SOURCE_DIR}/python/tools.py)
+  ${pyfiles})
 install(FILES ${COPYRIGHT} DESTINATION python)
 install(FILES ${PYFILE} DESTINATION python/cigsegy)

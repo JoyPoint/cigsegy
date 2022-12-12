@@ -22,3 +22,5 @@ thridpart/
 .cache
 build/
 Dist/
+*.sh
+dist_*

@@ -47,7 +47,13 @@ pip install pybind11
 If you need python extension only, run:
 ```bash
 pip install -U pip
+pip install .
+
+# if fmt not in the env path
 pip install . --install-option="--fmt_root=/xxx/fmt"
+
+# if you need build a wheel
+# pip wheel . --build-option="--fmt_root=/xxx/fmt"
 ```
 
 If you need two executables files
@@ -65,7 +71,7 @@ cmake .. -DCMAKE_INSTALL_PREFIX=your-install-dir \
   -Dfmt_ROOT=/xxx/cigsegy/thridPart/fmt/build/fmt/
 
 # selecting other python version, add -DPYTHON_EXECUTABL
-cmake .. -DCMAKE_INSTALL_PREFIX=your-install-dir -DPYTHON_EXECUTABL=/xxx/bin/python -DPYTHON_LIBRARIES=/xxx/lib/
+cmake .. -DCMAKE_INSTALL_PREFIX=your-install-dir -DPYTHON_EXECUTABLE=/xxx/bin/python -DPYTHON_LIBRARIES=/xxx/lib/
 ```
 
 ### python binding
