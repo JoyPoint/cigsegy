@@ -1,10 +1,17 @@
-import os
+import os, sys
 import subprocess
 
 from pathlib import Path
 
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 from setuptools import setup
+
+fmt_root = ''
+for v in sys.argv:
+    if v.startswith('--fmt_root='):
+        sys.argv.remove(v)
+        fmt_root = v.removeprefix('--fmt_root=')
+        break
 
 cwd = Path(__file__).resolve().parent
 
@@ -34,8 +41,11 @@ def get_extensions():
     ext_modules = []
     sources = ['src/segy.cpp', 'python/PySegy.cpp']
     include_dirs = ['src/include']
+    if fmt_root:
+        include_dirs.append(str(Path(fmt_root) / 'include'))
     extra_compile_args = ["-std=c++11", "-Wall"]
-    extra_link_args = ['-lfmt']
+    extra_link_args = []
+    # extra_link_args = ['-lfmt']
     if os.getenv("DEBUG_BUILD", None):
         extra_compile_args += ["-O0", "-g", "-UNDEBUG"]
     else:

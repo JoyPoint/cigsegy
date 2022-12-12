@@ -16,6 +16,7 @@ set(COPYRIGHT
   ${CMAKE_SOURCE_DIR}/python/setup.py)
 set(PYFILE
   ${CMAKE_SOURCE_DIR}/python/cigsegy.pyi
-  ${CMAKE_SOURCE_DIR}/python/__init__.py)
+  ${CMAKE_SOURCE_DIR}/python/__init__.py
+  ${CMAKE_SOURCE_DIR}/python/tools.py)
 install(FILES ${COPYRIGHT} DESTINATION python)
 install(FILES ${PYFILE} DESTINATION python/cigsegy)

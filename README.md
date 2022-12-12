@@ -37,10 +37,7 @@ You can also install `fmt` and `pybind11` manually.
 # install fmt
 mkdir thridPart && cd thridPart/
 git clone https://github.com/fmtlib/fmt.git
-cd fmt && mkdir build && cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=./fmt -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-make -j4 && make install
-# Now fmt is installed into /xxx/cigsegy/thridPart/fmt/build/fmt/
+# Now fmt is installed into /xxx/cigsegy/thridPart/fmt
 
 # install pybind11 using pypi
 pip install pybind11
@@ -49,7 +46,8 @@ pip install pybind11
 
 If you need python extension only, run:
 ```bash
-pip install .
+pip install -U pip
+pip install . --install-option="--fmt_root=/xxx/fmt"
 ```
 
 If you need two executables files

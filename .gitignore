@@ -17,7 +17,7 @@ wheels/
 version.py
 backup/
 
-test.cpp
+test.*
 thridpart/
 .cache
 build/
