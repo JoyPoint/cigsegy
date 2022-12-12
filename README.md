@@ -84,6 +84,9 @@ Using functions for reading
 >>> cigsegy.tofile('f3.segy', 'f3.dat')
 >>> cigsegy.tofile('f3.segy', 'f3.dat', iline=5, xline=17)
 >>> cigsegy.tofile_ignore_header('f3.segy', 'f3.dat', 90, 180, 43, format=5)
+
+>> cigsegy.create('out.segy', 'in.dat', 100, 329, 190, format=5)
+>> cigsegy.create('out.segy', d, 90, 180, 43, format=5)
 ```
 
 Reading segy file
