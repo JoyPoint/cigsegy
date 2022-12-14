@@ -16,6 +16,7 @@ wheels/
 *.egg-info
 version.py
 backup/
+test/
 
 test.*
 thridpart/
