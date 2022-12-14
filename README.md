@@ -1,7 +1,6 @@
 # cigsegy
 
-A tool for segy-format file reading and segy-format creating from binary file.
-I also offer the python-binding of the tool.
+A tool for segy-format file reading and segy-format creating from binary file in **Python** and **c++**.
 
 ### Third part dependencies
 
@@ -24,7 +23,7 @@ pip install cigsegy
 ```
 
 - install locally
-First, you need install `fmt` and `pybind11`.
+First, you need to install `fmt` and `pybind11`.
 ```bash
 # linux
 sudo apt-get install python3-pybind11 libfmt-dev
@@ -44,20 +43,19 @@ pip install pybind11
 # Now pybind11 is installed into /xxx/lib/python3.8/site-packages/pybind11/
 ```
 
-If you need python extension only, run:
+If you need the python package only, run:
 ```bash
 pip install -U pip
 pip install .
 
-# if fmt not in the env path
+# if fmt is not in the env path
 pip install . --install-option="--fmt_root=/xxx/fmt"
 
-# if you need build a wheel
+# if you need to build a wheel
 # pip wheel . --build-option="--fmt_root=/xxx/fmt"
 ```
 
-If you need two executables files
-install cigsegy
+If you need the two executables files:
 ```bash
 mkdir build
 cd build
@@ -75,8 +73,6 @@ cmake .. -DCMAKE_INSTALL_PREFIX=your-install-dir -DPYTHON_EXECUTABLE=/xxx/bin/py
 ```
 
 ### python binding
-Using `your-install-path/python/cigsegy.cpython-3x-platform-OS-gnu.so` file.
-
 Using functions for reading
 ```python
 >>> import cigsegy
@@ -84,6 +80,8 @@ Using functions for reading
 >>> d.shape
 (90, 180, 43)
 >>> d = cigsegy.fromfile('f3.segy', iline=5, xline=17)
+# format=5 means 4 bytes IEEE floating point,
+# format=1 means 4 bytes IBM floating point
 >>> d = cigsegy.fromfile_ignore_header('f3.segy', 90, 180, 43, format=5)
 >>> d.shape
 (90, 180, 43)
@@ -208,11 +206,13 @@ There are two executables in `your-install-dir/bin/`: `SEGYRead` and `SEGYCreate
 - Fast (Implemented in c++)
 - python wraping
 - dealing with irregular segy volume (missing some traces but sorted)
+- ignore headers mode
 
-### Limitation
+### Limitations
 
 - Only support post-stack segy file
 - Only support 3D segy volume
+- Only support 4 bytes IBM floating point and 4 bytes IEEE floating point
 
 ### Comparison
 
@@ -226,10 +226,10 @@ but lots of features are now disabled and will raise errors in this mode.
 
 However, there are losts of segy files that are sorted, but missing some traces.
 `segyio` doesn't support these files although they are easy dealed with.
-`cigsegy` supports these files just using the some methods, e.g. `cigsegy.fromfile('miss.segy')`.
+`cigsegy` supports these files just using the same methods, e.g. `cigsegy.fromfile('miss.segy')`.
 
 For some reasons (confidentiality requirement, mistakes when recording, ...), 
-the file headers are broken. If you remember the volume size and data format, 
+the file headers are broken. If you remember the volume size and sample format (1 for IBM, 5 for IEEE), 
 `cigsegy` can read the files too. Just using 
 ```python
 d = cigsegy.fromfile_ignore_header('miss.segy', inline_size, crossline_size, time, dformat)
