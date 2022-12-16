@@ -12,6 +12,7 @@
 #include "segy.h"
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
+#include <utility>
 
 namespace py = pybind11;
 
@@ -132,6 +133,30 @@ py::array_t<float> fromfile(const std::string &segy_name, int iline = 189,
   return out;
 }
 
+std::pair<py::array_t<float>, py::array_t<int>>
+collect(const std::string &segy_in, int iline = 189, int xline = 193,
+        int xfield = 73, int yfield = 77) {
+  Pysegy segy(segy_in);
+  segy.setInlineLocation(iline);
+  segy.setCrosslineLocation(xline);
+  segy.setXLocation(xfield);
+  segy.setYLocation(yfield);
+
+  auto data =
+      py::array_t<float>({static_cast<int>(segy.trace_count()), segy.shape(0)});
+  auto buff = data.request();
+  float *ptr = static_cast<float *>(buff.ptr);
+
+  auto header = py::array_t<int>({static_cast<int>(segy.trace_count()), 4});
+  auto buffh = header.request();
+  int *ptrh = static_cast<int *>(buffh.ptr);
+
+  segy.collect(ptr, ptrh);
+
+  std::pair<py::array_t<float>, py::array_t<int>> out(data, header);
+  return out;
+}
+
 template <typename... Args>
 using overload_cast_ = pybind11::detail::overload_cast_impl<Args...>;
 
@@ -143,6 +168,8 @@ PYBIND11_MODULE(cigsegy, m) {
       .def("setInlineLocation", &Pysegy::setInlineLocation, py::arg("iline"))
       .def("setCrosslineLocation", &Pysegy::setCrosslineLocation,
            py::arg("xline"))
+      .def("setXLocation", &Pysegy::setXLocation, py::arg("xfield"))
+      .def("setYLocation", &Pysegy::setYLocation, py::arg("yfield"))
       .def("setFillNoValue", &Pysegy::setFillNoValue, py::arg("fills"))
       .def("scan", &Pysegy::scan)
       .def("tofile", &Pysegy::tofile, py::arg("binary_out_name"))
@@ -178,7 +205,8 @@ PYBIND11_MODULE(cigsegy, m) {
            "create a segy from memory", py::arg("segy_out_name"),
            py::arg("src"))
       .def("set_size", &Pysegy::set_size, py::arg("sizeX"), py::arg("sizeY"),
-           py::arg("sizeZ"));
+           py::arg("sizeZ"))
+      .def("close_file", &Pysegy::close_file);
 
   m.def("fromfile_ignore_header", &fromfile_ignore_header,
         "read by ignoring header and specify shape", py::arg("segy_name"),
@@ -192,4 +220,7 @@ PYBIND11_MODULE(cigsegy, m) {
         py::arg("sizeY"), py::arg("sizeZ"), py::arg("format") = 5);
   m.def("tofile", &segy::tofile, "convert to binary file", py::arg("segy_name"),
         py::arg("out_name"), py::arg("iline") = 189, py::arg("xline") = 193);
+  m.def("collect", &collect, "colloct all trace (data and location)",
+        py::arg("segy_in"), py::arg("iline") = 189, py::arg("xline") = 193,
+        py::arg("xfield") = 73, py::arg("yfield") = 77);
 }

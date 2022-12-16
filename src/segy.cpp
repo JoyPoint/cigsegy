@@ -11,6 +11,7 @@
 
 #include "segy.h"
 #include <chrono>
+#include <cstring>
 #define FMT_HEADER_ONLY
 #include <fmt/format.h>
 #include <stdexcept>
@@ -506,7 +507,8 @@ std::string SegyIO::metaInfo() {
   return fmt::format(
       "shape: (n-time, n-crossline, n-inline) = ({}, {}, {})\nsample interval: "
       "{}, data format code: {}\ninline "
-      "start: {}, crossline start: {}\nX interval: {}, Y interval: {}, time "
+      "start: {}, crossline start: {}\nX interval: {:.1f}, Y interval: {:.1f}, "
+      "time "
       "start: {}\nIs regular file (no missing traces): {}",
       m_metaInfo.sizeX, m_metaInfo.sizeY, m_metaInfo.sizeZ,
       m_metaInfo.sample_interval, dformat, m_metaInfo.min_inline,
@@ -795,6 +797,29 @@ void SegyIO::write_trace_header(char *dst, TraceHeader *trace_header,
 void SegyIO::close_file() {
   if (m_source.is_mapped()) {
     m_source.unmap();
+  }
+}
+
+void SegyIO::collect(float *data, int *header) {
+  const char *source = m_source.data() + kTextualHeaderSize + kBinaryHeaderSize;
+  int32_t trace_size = m_metaInfo.sizeX * sizeof(float) + kTraceHeaderSize;
+  progressbar bar(100);
+  for (int i = 0; i < m_metaInfo.trace_count; i++) {
+    if (i % (m_metaInfo.trace_count / 100) == 0) {
+      bar.update();
+    }
+    get_TraceInfo(source + i * trace_size,
+                  *reinterpret_cast<TraceInfo *>(header));
+    memcpy(data, source + kTraceHeaderSize, m_metaInfo.sizeX * sizeof(float));
+    for (int j = 0; j < m_metaInfo.sizeX; j++) {
+      if (m_metaInfo.data_format == 1) {
+        data[j] = ibm_to_ieee(data[j], true);
+      } else {
+        data[j] = swap_endian(data[j]);
+      }
+    }
+    data += m_metaInfo.sizeX;
+    header += 4;
   }
 }
 

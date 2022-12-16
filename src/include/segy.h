@@ -252,6 +252,8 @@ public:
     }
   }
 
+  inline int64_t trace_count() { return m_metaInfo.trace_count; }
+
   inline void set_size(int x, int y, int z) {
     m_metaInfo.sizeX = x;
     m_metaInfo.sizeY = y;
@@ -268,6 +270,8 @@ public:
       }
     }
   }
+
+  void collect(float *data, int *header);
 
   std::string textual_header();
   std::string metaInfo();

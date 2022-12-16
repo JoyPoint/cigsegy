@@ -76,15 +76,30 @@ cmake .. -DCMAKE_INSTALL_PREFIX=your-install-dir -DPYTHON_EXECUTABLE=/xxx/bin/py
 Using functions for reading
 ```python
 >>> import cigsegy
+>>> cigsegy.textual_header('f3.segy')
+C01 SEGY OUTPUT                    
+C02                     
+C03                                                                             
+C04 Name: f3.segy  
+...
+>>> cigsegy.metaInfo('f3.segy', iline=5, xline=17)
+shape: (n-time, n-crossline, n-inline) = (462, 951, 651)
+sample interval: 4000, data format code: 4-bytes IEEE floating-point
+inline start: 1, crossline start: 1
+X interval: 25.0, Y interval: 25, time start: 0
+
 >>> d = cigsegy.fromfile('f3.segy')
 >>> d.shape
 (90, 180, 43)
+
 >>> d = cigsegy.fromfile('f3.segy', iline=5, xline=17)
+
 # format=5 means 4 bytes IEEE floating point,
 # format=1 means 4 bytes IBM floating point
 >>> d = cigsegy.fromfile_ignore_header('f3.segy', 90, 180, 43, format=5)
 >>> d.shape
 (90, 180, 43)
+
 >>> cigsegy.tofile('f3.segy', 'f3.dat')
 >>> cigsegy.tofile('f3.segy', 'f3.dat', iline=5, xline=17)
 >>> cigsegy.tofile_ignore_header('f3.segy', 'f3.dat', 90, 180, 43, format=5)
@@ -105,11 +120,13 @@ C04 Name: f3.segy
 C05 Type: 3D seismic  Created Time: 2022/11/25T10:16                            
 ......
 C40 END EBCDIC
+
 >>> print(d.metaInfo())
 shape: (n-time, n-crossline, n-inline) = (462, 951, 651)
 sample interval: 4000, data format code: 4-bytes IEEE floating-point
 inline start: 1, crossline start: 1
-X interval: 24.973711, Y interval: 25, time start: 0
+X interval: 25.0, Y interval: 25.0, time start: 0
+
 >>> f = d.read()
 [##################################################] 100%
 >>> f.shape
@@ -255,3 +272,57 @@ once for `segysak`,
 
 The second reading by `segyio` is faster than the first reading by `segyio`, 
 while the time required for reading three times by `cigsegy` is very close.
+
+
+### special cases handling
+
+- sorted but missing some traces
+
+``` python
+d = cigsegy.fromfile('ex.segy')
+```
+
+- ignore headers
+
+```python
+# shape (n-inline, n-crossline, n-time) = (167, 78, 99)
+# format = 5 for IEEE, 1 for IBM
+d = cigsegy.fromfile_ignore_header('ex.segy', 167, 78, 99, format=5)
+```
+
+- if the segy data is resampled, e.g. segy files from USGS
+
+```python
+>>> cigsegy.textual_header('G3D201611-05_lns5090_5458.sgy')
+C14 First-Line: 5090     Last-Line: 5458  Line-Spacing: 53.3650m   Inc: 2       
+C15 First-CDP:  11800    Last-CDP:  15600 CDP-Spacing: 13.3439m    Inc: 5 
+...
+C19 Line-Byte-Pos:221-224 32Bit CDP-Byte-Pos:21-24 32Bit
+```
+
+We note that the data is resampled, and the inline number interval is 2,
+crossline number interval is 5, not 1. So we can use:
+
+```python
+d = cigsegy.tools.read_with_step('G3D201611-05_lns5090_5458.sgy', 
+      iline=221, xline=21, iline_step=2, xline_step=5)
+```
+
+Or 
+
+```python
+d = cigsegy.tools.read_unstrict('G3D201611-05_lns5090_5458.sgy', 
+      iline=221, xline=21)
+```
+
+- just want to collect the traces and their location (iline, xline, x, y)
+
+```python
+data, header = cigsegy.collect('G3D201611-05_lns5090_5458.sgy', iline=221, xline=21, xfield=73, yfield=77)
+print(data.shape)
+# (140785, 1002)
+# = (trace_count, n-time)
+print(header.shape)
+# (140785, 4)
+# each raw is [inline, crossline, x, y]
+```

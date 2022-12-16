@@ -7,7 +7,7 @@ _Shape = typing.Tuple[int, ...]
 
 __all__ = [
     "Pysegy", "fromfile", "fromfile_ignore_header", "tofile",
-    "tofile_ignore_header"
+    "tofile_ignore_header", "collect"
 ]
 
 
@@ -17,18 +17,20 @@ class Pysegy():
     def __init__(self, segy_name: str) -> None:
         """
         Reading mode
+
         Parameters:
-        segy_name: the input segy format file
+        - segy_name: the input segy format file
         """
 
     @typing.overload
     def __init__(self, sizeX: int, sizeY: int, sizeZ: int) -> None:
         """
         Creating mode
+
         Parameters:
-        sizeX: the number of samples per trace,
-        sizeY: the number of crossline,
-        sizeZ: the number of inline.
+        - sizeX: the number of samples per trace,
+        - sizeY: the number of crossline,
+        - sizeZ: the number of inline.
         """
 
     @typing.overload
@@ -36,11 +38,12 @@ class Pysegy():
                  sizeZ: int) -> None:
         """
         Creating mode
+
         Parameters:
-        binary_name: the input binary file name,
-        sizeX: the number of samples per trace,
-        sizeY: the number of crossline,
-        sizeZ: the number of inline.
+        - binary_name: the input binary file name,
+        - sizeX: the number of samples per trace,
+        - sizeY: the number of crossline,
+        - sizeZ: the number of inline.
         """
 
     @typing.overload
@@ -49,7 +52,7 @@ class Pysegy():
         create a segy
 
         Parameters:
-        segy_out_name: the output file name to create segy format
+        - segy_out_name: the output file name to create segy format
         """
 
     @typing.overload
@@ -132,6 +135,18 @@ class Pysegy():
         recommend: 189, 5, 9, default is 189.
         """
 
+    def setXLocation(self, xfield: int) -> None:
+        """
+        set the x field of trace headers (for reading segy)
+        recommend: 73, 181
+        """
+
+    def setYLocation(self, yfield: int) -> None:
+        """
+        set the y field of trace headers (for reading segy)
+        recommend: 77, 185
+        """
+
     def setMinCrossline(self, minXline: int) -> None:
         """
         set min crossline number (for creating segy)
@@ -167,9 +182,11 @@ class Pysegy():
     def set_size(self, sizeX: int, sizeY: int, sizeZ: int) -> None:
         """
         set data shape for creating segy or reading by ignoring headers.
-        sizeX: number of samples per trace
-        sizeY: number of crossline
-        sizeZ: number of inline
+
+        Parameters:
+        - sizeX: number of samples per trace
+        - sizeY: number of crossline
+        - sizeZ: number of inline
         """
 
     def textual_header(self) -> str:
@@ -184,7 +201,12 @@ class Pysegy():
         read a segy file and convert it to a binary file.
 
         Parameters:
-        binary_out_name: the output binary file name
+        - binary_out_name: the output binary file name
+        """
+
+    def close_file(self) -> None:
+        """
+        close mmap for reading mode
         """
 
     pass
@@ -197,9 +219,9 @@ def fromfile(segy_name: str,
     reading from a segy file.
 
     Parameters:
-    segy_name: the input segy file name
-    iline: the inline number field in each trace header
-    xline: the crossline number field in each trace header
+    - segy_name: the input segy file name
+    - iline: the inline number field in each trace header
+    - xline: the crossline number field in each trace header
     """
 
 
@@ -212,11 +234,11 @@ def fromfile_ignore_header(segy_name: str,
     reading by ignoring segy headers and specifing the volume shape
 
     Parameters:
-    segy_name: the input segy file
-    sizeZ: number of inline
-    sizeY: number of crossline
-    sizeX: number of samples per trace
-    format: the data format code, 1 for 4 bytes IBM float, 5 for 4 bytes IEEE float
+    - segy_name: the input segy file
+    - sizeZ: number of inline
+    - sizeY: number of crossline
+    - sizeX: number of samples per trace
+    - format: the data format code, 1 for 4 bytes IBM float, 5 for 4 bytes IEEE float
     """
 
 
@@ -228,10 +250,10 @@ def tofile(segy_name: str,
     convert a segy file to a binary file
 
     Parameters:
-    segy_name: the input segy file name
-    out_name: the output binary file name
-    iline: the inline number field in each trace header
-    xline: the crossline number field in each trace header
+    - segy_name: the input segy file name
+    - out_name: the output binary file name
+    - iline: the inline number field in each trace header
+    - xline: the crossline number field in each trace header
     """
 
 
@@ -246,10 +268,35 @@ def tofile_ignore_header(segy_name: str,
     and specifing the volume shape.
 
     Parameters:
-    segy_name: the input segy file name
-    out_name: the output binary file name
-    sizeZ: number of inline
-    sizeY: number of crossline
-    sizeX: number of samples per trace
-    format: the data format code, 1 for 4 bytes IBM float, 5 for 4 bytes IEEE float
+    - segy_name: the input segy file name
+    - out_name: the output binary file name
+    - sizeZ: number of inline
+    - sizeY: number of crossline
+    - sizeX: number of samples per trace
+    - format: the data format code, 1 for 4 bytes IBM float, 5 for 4 bytes IEEE float
+    """
+
+
+def collect(
+    segy_in: str,
+    iline: int = 189,
+    xline: int = 193,
+    xfield: int = 73,
+    yfield: int = 77
+) -> tuple(numpy.ndarray[numpy.float32], numpy.ndarray[numpy.int32]):
+    """
+    collect all traces data and their location (iline, xline, X, Y) from the `segy_in` file.
+
+    Parameters:
+    - segy_in: str, the input segy file
+    - iline: int, the inline number field
+    - xline: int, the crossline number field
+    - xfield: int, the X field
+    - yfield: int, the Y field
+
+    Returns:
+    a tuple, 
+    - the first element is the data (numpy.ndarray), its shape = (trace_cout, n-time)
+    - the second element is the header, 
+    its shape = (trace_count, 4) = trace_cout * (iline, xline, x, y)
     """
