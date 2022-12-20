@@ -283,7 +283,7 @@ def collect(
     xline: int = 193,
     xfield: int = 73,
     yfield: int = 77
-) -> tuple(numpy.ndarray[numpy.float32], numpy.ndarray[numpy.int32]):
+) -> typing.Tuple[numpy.ndarray[numpy.float32], numpy.ndarray[numpy.int32]]:
     """
     collect all traces data and their location (iline, xline, X, Y) from the `segy_in` file.
 
