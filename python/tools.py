@@ -1,4 +1,5 @@
 import numpy
+from typing import Tuple
 from .cigsegy import (Pysegy, collect)
 
 
@@ -65,7 +66,7 @@ def is_sorted(header: numpy.ndarray) -> bool:
     return True
 
 
-def step(header: numpy.ndarray) -> tuple[int]:
+def step(header: numpy.ndarray) -> Tuple[int, int]:
     iline = numpy.unique(header[:, 0])
     xline = numpy.unique(header[:, 1])
     step1 = iline[2] - iline[1]

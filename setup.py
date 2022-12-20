@@ -17,7 +17,7 @@ for v in sys.argv:
 cwd = Path(__file__).resolve().parent
 
 package_name = "cigsegy"
-version = "0.2.0"
+version = "1.0.0"
 git_hash = "unknown"
 
 try:
