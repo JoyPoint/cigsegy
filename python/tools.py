@@ -65,7 +65,7 @@ def is_sorted(header: numpy.ndarray) -> bool:
     return True
 
 
-def step(header: numpy.ndarray) -> tuple(int, int):
+def step(header: numpy.ndarray) -> tuple[int]:
     iline = numpy.unique(header[:, 0])
     xline = numpy.unique(header[:, 1])
     step1 = iline[2] - iline[1]

@@ -17,7 +17,7 @@ for v in sys.argv:
 cwd = Path(__file__).resolve().parent
 
 package_name = "cigsegy"
-version = "0.1.4"
+version = "0.2.0"
 git_hash = "unknown"
 
 try:
@@ -74,5 +74,4 @@ setup(
     packages=['cigsegy'],
     package_dir={'cigsegy': 'python'},
     include_package_data=True,
-    exclude_package_data={'cigsegy': ['*.cpp', '*.txt', 'setup.py']}
-)
+    exclude_package_data={'cigsegy': ['*.cpp', '*.txt', 'setup.py']})
