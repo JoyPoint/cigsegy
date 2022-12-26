@@ -656,10 +656,10 @@ static inline std::string field_str(int field, int len = 2) {
 void SegyIO::write_textual_header(char *dst, const std::string &segy_out_name) {
   auto now =
       std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-  std::string time_string(30, '\0');
+  std::string time_string(25, ' ');
   std::strftime(&time_string[0], time_string.size(), "%Y-%m-%d %H:%M:%S",
                 std::localtime(&now));
-  // std::string time_string = fmt::format("{:%Y-%m-%d %H:%M}", now);
+  // std::string time_string = fmt::format("{:<30}", time_string0);
 
   std::string dformat = m_metaInfo.data_format == 1
                             ? "4-bytes IBM floating-point"
@@ -728,9 +728,9 @@ void SegyIO::write_textual_header(char *dst, const std::string &segy_out_name) {
       "            "
       "C40 END EBCDIC                                                      "
       "            ",
-      segy_out_name, time_string, m_metaInfo.min_inline, m_metaInfo.max_inline,
-      m_metaInfo.min_crossline, m_metaInfo.max_crossline, m_metaInfo.sizeX,
-      m_metaInfo.sizeY, m_metaInfo.sizeZ, m_metaInfo.sizeX,
+      segy_out_name, time_string.substr(0, 19), m_metaInfo.min_inline,
+      m_metaInfo.max_inline, m_metaInfo.min_crossline, m_metaInfo.max_crossline,
+      m_metaInfo.sizeX, m_metaInfo.sizeY, m_metaInfo.sizeZ, m_metaInfo.sizeX,
       m_metaInfo.sample_interval, m_metaInfo.Z_interval / 100,
       m_metaInfo.Y_interval / 100, dformat, field_str(kBSampleIntervalField),
       field_str(kBSampleCountField), field_str(kBSampleFormatField),
@@ -739,6 +739,10 @@ void SegyIO::write_textual_header(char *dst, const std::string &segy_out_name) {
       field_str(m_metaInfo.X_field, 4), field_str(m_metaInfo.Y_field, 4),
       field_str(kTStartTimeField), field_str(kTSampleCountField),
       field_str(kTSampleIntervalField));
+
+  for (auto &s : textual_header) {
+    s = getEBCIDfromASCII(s);
+  }
 
   memcpy(dst, textual_header.c_str(), kTextualHeaderSize);
 }
