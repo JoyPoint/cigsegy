@@ -276,6 +276,8 @@ public:
   std::string textual_header();
   std::string metaInfo();
   std::string binary_header_string();
+  inline std::vector<LineInfo> line_info() { return m_lineInfo; }
+  inline MetaInfo get_metaInfo() { return m_metaInfo; }
 
   void setInlineLocation(int loc);
   void setCrosslineLocation(int loc);
@@ -345,6 +347,11 @@ void tofile(const std::string &segy_name, const std::string &out_name,
             int xline = kDefaultCrosslineField);
 void read(const std::string &segy_name, float *dst,
           int iline = kDefaultInlineField, int xline = kDefaultCrosslineField);
+
+void create_by_sharing_header(const std::string &segy_name,
+                              const std::string &header_segy, const float *src,
+                              int sizeX, int sizeY, int sizeZ, int iline = 189,
+                              int xline = 193);
 } // namespace segy
 
 #endif

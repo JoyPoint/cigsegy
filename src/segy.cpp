@@ -137,8 +137,8 @@ void SegyIO::setDataFormatCode(int dformat) {
 }
 
 void SegyIO::setStartTime(int start_time) {
-  if (start_time <= 0) {
-    throw std::runtime_error("Invalid start time (must > 0)");
+  if (start_time < 0) {
+    throw std::runtime_error("Invalid start time (must >= 0)");
   }
   m_metaInfo.start_time = start_time;
   isScan = false;
@@ -863,6 +863,108 @@ void tofile_ignore_header(const std::string &segy_name,
   segy_data.set_size(sizeX, sizeY, sizeZ);
   segy_data.tofile(out_name);
   segy_data.close_file();
+}
+
+void create_by_sharing_header(const std::string &segy_name,
+                              const std::string &header_segy, const float *src,
+                              int sizeX, int sizeY, int sizeZ, int iline,
+                              int xline) {
+  SegyIO header(header_segy);
+  header.setInlineLocation(iline);
+  header.setCrosslineLocation(xline);
+  header.scan();
+  auto line_info = header.line_info();
+  auto meta_info = header.get_metaInfo();
+  auto trace_count = header.trace_count();
+  header.close_file();
+
+  if (meta_info.sizeY != sizeY || meta_info.sizeZ != sizeZ ||
+      meta_info.sizeX != sizeX) {
+    throw std::runtime_error(fmt::format(
+        "shape of header: {} x {} x {}, but shape of source: {} x {} x {}",
+        meta_info.sizeZ, meta_info.sizeY, meta_info.sizeX, sizeZ, sizeY,
+        sizeX));
+  }
+
+  uint64_t need_size = kTextualHeaderSize + kBinaryHeaderSize +
+                       trace_count * (sizeX * sizeof(float) + kTraceHeaderSize);
+  int fd = open(segy_name.c_str(), O_RDWR | O_CREAT | O_TRUNC, 00644);
+  // lseek(int, long, ), check whether need size > max number of long
+  for (int i = 0; i < int(need_size / kMaxLSeekSize) + 1; i++) {
+    uint64_t move_point = need_size > kMaxLSeekSize ? kMaxLSeekSize : need_size;
+    if (lseek(fd, move_point - 1, SEEK_END) < 0) {
+      throw std::runtime_error("create file failed");
+    }
+    if (write(fd, "", 1) < 0) {
+      throw std::runtime_error("create file failed");
+    }
+    if (need_size > kMaxLSeekSize) {
+      need_size -= kMaxLSeekSize;
+    }
+  }
+
+  std::error_code error;
+  mio::mmap_sink rw_mmap = mio::make_mmap_sink(fd, error);
+  if (error) {
+    throw std::runtime_error("mmap fail when write data");
+  }
+  close(fd);
+
+  mio::mmap_source m_source;
+  m_source.map(header_segy, error);
+  if (error) {
+    throw std::runtime_error("Cannot mmap segy file");
+  }
+
+  // copy textual header and binary header
+  std::copy(m_source.begin(),
+            m_source.begin() + kTextualHeaderSize + kBinaryHeaderSize,
+            rw_mmap.begin());
+
+  // trace header and data
+  progressbar bar(sizeZ);
+  int64_t trace_size = sizeX + kTraceHeaderSize / 4;
+  for (int iz = 0; iz < sizeZ; iz++) {
+    bar.update();
+    int64_t trace_loc = kTextualHeaderSize + kBinaryHeaderSize +
+                        trace_size * 4 * line_info[iz].trace_start;
+
+    const float *srcopy = src + iz * sizeY * sizeX;
+
+    const float *m_src =
+        reinterpret_cast<const float *>(m_source.data() + trace_loc);
+    float *m_dst = reinterpret_cast<float *>(rw_mmap.data() + trace_loc);
+
+    for (int iy = 0; iy < line_info[iz].count; iy++) {
+      int srct = iy;
+      if (line_info[iz].count != sizeY) {
+        const int *tmp = reinterpret_cast<const int *>(m_src);
+        srct = swap_endian(
+                   tmp[iy * trace_size + (meta_info.crossline_field - 1) / 4]) -
+               meta_info.min_crossline;
+      }
+
+      // copy trace header
+      std::copy(m_src + iy * trace_size,
+                m_src + iy * trace_size + kTraceHeaderSize / 4,
+                m_dst + iy * trace_size);
+
+      // copy data
+      float *t_dst = m_dst + iy * trace_size + kTraceHeaderSize / 4;
+      std::copy(srcopy + srct * sizeX, srcopy + srct * sizeX + sizeX, t_dst);
+      // convert each value to big endian and its format
+      for (int ix = 0; ix < sizeX; ix++) {
+        if (meta_info.data_format == 1) {
+          t_dst[ix] = ieee_to_ibm(t_dst[ix], true);
+        }
+        t_dst[ix] = swap_endian(t_dst[ix]);
+      }
+    }
+  }
+  fmt::print("\n");
+
+  m_source.unmap();
+  rw_mmap.unmap();
 }
 
 } // namespace segy

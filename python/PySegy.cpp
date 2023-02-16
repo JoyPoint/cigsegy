@@ -112,6 +112,22 @@ void Pysegy::create(const std::string &segy_out_name,
   create(segy_out_name, ptr);
 }
 
+void create_by_sharing_header(const std::string &segy_name,
+                              const std::string &header_segy,
+                              const py::array_t<float> &src, int iline = 189,
+                              int xline = 193) {
+  auto buff = src.request();
+  if (buff.ndim != 3) {
+    throw std::runtime_error("Input data must be a 3D data.");
+  }
+
+  auto r = src.unchecked<3>();
+  float *ptr = static_cast<float *>(buff.ptr);
+
+  segy::create_by_sharing_header(segy_name, header_segy, ptr, r.shape(2),
+                                 r.shape(1), r.shape(0), iline, xline);
+}
+
 py::array_t<float> fromfile_ignore_header(const std::string &segy_name,
                                           int sizeZ, int sizeY, int sizeX,
                                           int format = 5) {
@@ -223,4 +239,8 @@ PYBIND11_MODULE(cigsegy, m) {
   m.def("collect", &collect, "colloct all trace (data and location)",
         py::arg("segy_in"), py::arg("iline") = 189, py::arg("xline") = 193,
         py::arg("xfield") = 73, py::arg("yfield") = 77);
+  m.def("create_by_sharing_header", &create_by_sharing_header,
+        "create a segy file using a existed segy header", py::arg("segy_name"),
+        py::arg("header_segy"), py::arg("src"), py::arg("iline") = 189,
+        py::arg("xline") = 193);
 }

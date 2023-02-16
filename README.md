@@ -2,6 +2,33 @@
 
 A tool for segy-format file reading and segy-format creating from binary file in **Python** and **c++**.
 
+### New features
+
+> Latest updating.
+
+- Add a function: 
+```python
+def create_by_sharing_header(segy_name: str,
+                             header_segy: str,
+                             src: numpy.ndarray[numpy.float32],
+                             iline: int = 189,
+                             xline: int = 193):
+    """
+    create a segy and its header is from an existed segy.
+
+    Parameters:
+    - segy_name: str, the out segy name
+    - header_segy: str, the header segy file
+    - src: numpy.ndarray, source data
+    - iline: int, the inline number field of header segy
+    - xline: int, the crossline number field of header segy
+    """
+
+# A.segy --(read)--> A.dat --(process)--> B.dat --(using the same header)--> B.segy
+# create_by_sharing_header("B.segy", "A.segy", B, 189, 193)
+```
+
+
 ### Third part dependencies
 
 - `src/include/mio.hpp` is from [mandreyel/mio](https://github.com/mandreyel/mio): Cross-platform C++11 header-only library for memory mapped file IO
@@ -274,7 +301,7 @@ The second reading by `segyio` is faster than the first reading by `segyio`,
 while the time required for reading three times by `cigsegy` is very close.
 
 
-### special cases handling
+### Special cases handling
 
 - sorted but missing some traces
 

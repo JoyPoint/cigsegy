@@ -300,3 +300,20 @@ def collect(
     - the second element is the header, 
     its shape = (trace_count, 4) = trace_cout * (iline, xline, x, y)
     """
+
+
+def create_by_sharing_header(segy_name: str,
+                             header_segy: str,
+                             src: numpy.ndarray[numpy.float32],
+                             iline: int = 189,
+                             xline: int = 193):
+    """
+    create a segy and its header is from an existed segy.
+
+    Parameters:
+    - segy_name: str, the out segy name
+    - header_segy: str, the header segy file
+    - src: numpy.ndarray, source data
+    - iline: int, the inline number field of header segy
+    - xline: int, the crossline number field of header segy
+    """
